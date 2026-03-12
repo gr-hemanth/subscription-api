@@ -1,79 +1,118 @@
 const express = require("express");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const pool = require("../config/db");
 
 const router = express.Router();
 
-let users = [];
-
-/* REGISTER */
+/* REGISTER USER */
 
 router.post("/register", async (req, res) => {
 
     const { email, password } = req.body;
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    if (!email || !password) {
+        return res.status(400).json({ message: "Email and password required" });
+    }
 
-    const user = {
-        id: users.length + 1,
-        email,
-        password: hashedPassword,
-        role: "free"
-    };
+    try {
 
-    users.push(user);
+        const hashedPassword = await bcrypt.hash(password, 10);
 
-    res.json({ message: "User registered successfully" });
+        const result = await pool.query(
+            "INSERT INTO users(email, password) VALUES($1, $2) RETURNING id, email, role",
+            [email, hashedPassword]
+        );
+
+        res.status(201).json({
+            message: "User registered successfully",
+            user: result.rows[0]
+        });
+
+    } catch (error) {
+
+        if (error.code === "23505") {
+            return res.status(400).json({ message: "User already exists" });
+        }
+
+        res.status(500).json({ message: "Server error" });
+    }
 
 });
 
 
-/* LOGIN */
+/* LOGIN USER */
 
 router.post("/login", async (req, res) => {
 
     const { email, password } = req.body;
 
-    const user = users.find(u => u.email === email);
+    try {
 
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        const result = await pool.query(
+            "SELECT * FROM users WHERE email=$1",
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const user = result.rows[0];
+
+        const validPassword = await bcrypt.compare(password, user.password);
+
+        if (!validPassword) {
+            return res.status(401).json({ message: "Invalid password" });
+        }
+
+        const token = jwt.sign(
+            { id: user.id, role: user.role },
+            "secretkey",
+            { expiresIn: "1h" }
+        );
+
+        res.json({
+            message: "Login successful",
+            token
+        });
+
+    } catch (error) {
+
+        res.status(500).json({ message: "Server error" });
+
     }
-
-    const validPassword = await bcrypt.compare(password, user.password);
-
-    if (!validPassword) {
-        return res.status(401).json({ message: "Invalid password" });
-    }
-
-    const token = jwt.sign(
-        { id: user.id, role: user.role },
-        "secretkey",
-        { expiresIn: "1h" }
-    );
-
-    res.json({
-        message: "Login successful",
-        token: token
-    });
 
 });
 
-router.post("/upgrade", (req, res) => {
+
+/* UPGRADE SUBSCRIPTION */
+
+router.post("/upgrade", async (req, res) => {
 
     const { email } = req.body;
 
-    const user = users.find(u => u.email === email);
+    try {
 
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        const result = await pool.query(
+            "UPDATE users SET role='premium' WHERE email=$1 RETURNING *",
+            [email]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        res.json({
+            message: "Subscription upgraded to premium"
+        });
+
+    } catch (error) {
+
+        res.status(500).json({ message: "Server error" });
+
     }
 
-    user.role = "premium";
-
-    res.json({
-        message: "Subscription upgraded to premium"
-    });
-
 });
+
 module.exports = router;
