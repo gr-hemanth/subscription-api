@@ -1,3 +1,4 @@
+const adminRoutes = require("./routes/adminRoutes");
 const express = require("express");
 
 const authRoutes = require("./routes/authRoutes");
@@ -9,6 +10,7 @@ app.use(express.json());
 
 app.use("/auth", authRoutes);
 app.use("/content", contentRoutes);
+app.use("/admin", adminRoutes);
 
 app.get("/", (req, res) => {
     res.send("Subscription API is running");
