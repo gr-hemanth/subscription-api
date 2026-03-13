@@ -68,7 +68,7 @@ router.post("/login", async (req, res) => {
 
         const token = jwt.sign(
             { id: user.id, role: user.role },
-            "secretkey",
+            process.env.JWT_SECRET,
             { expiresIn: "1h" }
         );
 
@@ -95,7 +95,7 @@ router.post("/upgrade", async (req, res) => {
     try {
 
         const result = await pool.query(
-            "UPDATE users SET role='premium' WHERE email=$1 RETURNING *",
+            "UPDATE users SET role='premium', subscription_expires = NOW() + INTERVAL '30 days' WHERE email=$1 RETURNING *",
             [email]
         );
 
@@ -104,7 +104,8 @@ router.post("/upgrade", async (req, res) => {
         }
 
         res.json({
-            message: "Subscription upgraded to premium"
+            message: "Subscription upgraded to premium",
+            expires_at: result.rows[0].subscription_expires
         });
 
     } catch (error) {
