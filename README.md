@@ -32,6 +32,7 @@ This project was built as part of the **GDG on Campus SRM Technical Recruitment 
 * **JSON Web Tokens (JWT)**
 * **bcrypt.js**
 * **dotenv**
+* **Docker**
 
 ---
 
@@ -59,6 +60,8 @@ subscription-api
 │
 ├── .env.example
 ├── .gitignore
+├── Dockerfile
+├── .dockerignore
 ├── server.js
 ├── package.json
 └── README.md
@@ -135,7 +138,7 @@ CREATE TABLE users (
 
 ---
 
-# Run the Server
+# Run the Server (Local)
 
 ```
 node server.js
@@ -146,6 +149,38 @@ Server runs at:
 ```
 http://localhost:3000
 ```
+
+---
+
+# Run Using Docker
+
+Docker allows the API to run inside a container without installing dependencies manually.
+
+## 1. Build the Docker image
+
+```
+docker build -t subscription-api .
+```
+
+---
+
+## 2. Run the Docker container
+
+```
+docker run -p 3000:3000 --env-file .env subscription-api
+```
+
+---
+
+## 3. Access the API
+
+Open:
+
+```
+http://localhost:3000
+```
+
+The server will start inside a Docker container.
 
 ---
 
@@ -274,6 +309,7 @@ This enables monitoring of **premium content usage**.
 * PostgreSQL database integration
 * **30-day subscription expiration**
 * **Environment variable configuration using dotenv**
+* **Docker containerization**
 
 ---
 
@@ -282,17 +318,16 @@ This enables monitoring of **premium content usage**.
 * Payment gateway integration
 * Subscription renewal system
 * Usage analytics dashboard
-* Docker containerization
 * Database migrations
 
 ---
 
 # Author
 
-Hemanth
+GR Hemanth
 
 GitHub:
-https://github.com/gr-hemanth
+[https://github.com/gr-hemanth](https://github.com/gr-hemanth)
 
 ---
 
