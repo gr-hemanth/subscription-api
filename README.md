@@ -2,7 +2,7 @@
 
 A backend API that provides **subscription-based access control** for premium content.
 
-Users can register, authenticate using JWT, upgrade their subscription, and access protected content based on their subscription status.
+Users can register, authenticate using **JWT**, upgrade their subscription, and access protected content based on their subscription status. Premium access automatically expires after **30 days**.
 
 This project was built as part of the **GDG on Campus SRM Technical Recruitment Task**.
 
@@ -10,26 +10,28 @@ This project was built as part of the **GDG on Campus SRM Technical Recruitment 
 
 # Features
 
-* User Registration
-* Secure Login using **JWT Authentication**
+* User registration
+* Secure login with **JWT authentication**
 * Password hashing using **bcrypt**
 * **PostgreSQL database integration**
-* Free and Premium subscription roles
+* Free vs Premium user roles
 * Protected premium content routes
 * Subscription upgrade endpoint (simulated payment)
+* **Automatic 30-day subscription expiration**
 * Premium content access logging
 * Admin endpoint to view access logs
+* **Environment variable configuration using dotenv**
 
 ---
 
 # Tech Stack
 
-* Node.js
-* Express.js
-* PostgreSQL
-* JSON Web Tokens (JWT)
-* bcrypt.js
-* File System (for access logging)
+* **Node.js**
+* **Express.js**
+* **PostgreSQL**
+* **JSON Web Tokens (JWT)**
+* **bcrypt.js**
+* **dotenv**
 
 ---
 
@@ -53,6 +55,10 @@ subscription-api
 ├── logs
 │   └── access.log
 │
+├── screenshots
+│
+├── .env.example
+├── .gitignore
 ├── server.js
 ├── package.json
 └── README.md
@@ -86,11 +92,30 @@ npm install
 
 ---
 
-## 4. Setup PostgreSQL Database
+# Environment Configuration
 
-Create a PostgreSQL database.
+Create a `.env` file in the project root.
 
-Example:
+Example `.env` configuration:
+
+```
+PORT=3000
+JWT_SECRET=your_jwt_secret
+
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_NAME=subscription_api
+```
+
+A template file **`.env.example`** is included in the repository.
+
+---
+
+# PostgreSQL Database Setup
+
+Create a database:
 
 ```
 CREATE DATABASE subscription_api;
@@ -103,29 +128,14 @@ CREATE TABLE users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password TEXT NOT NULL,
-    subscription VARCHAR(20) DEFAULT 'free'
+    role VARCHAR(20) DEFAULT 'free',
+    subscription_expires TIMESTAMP
 );
 ```
 
 ---
 
-## 5. Configure Database Connection
-
-Update your database configuration in `db.js` or environment variables.
-
-Example:
-
-```
-DB_HOST=localhost
-DB_PORT=5432
-DB_USER=postgres
-DB_PASSWORD=yourpassword
-DB_NAME=subscription_api
-```
-
----
-
-## 6. Start the Server
+# Run the Server
 
 ```
 node server.js
@@ -141,7 +151,11 @@ http://localhost:3000
 
 # Testing the API
 
-Example requests can be tested using **Postman**, **curl**, or any API client.
+You can test the API using:
+
+* **Postman**
+* **curl**
+* any API testing client
 
 ---
 
@@ -188,7 +202,7 @@ Request body:
 }
 ```
 
-Upgrades the user from **Free → Premium**.
+Upgrades a user from **Free → Premium** and sets a **30-day subscription expiration**.
 
 ---
 
@@ -220,7 +234,9 @@ Header:
 Authorization: Bearer <token>
 ```
 
-Accessible **only to Premium users**.
+Accessible **only to Premium users with a valid subscription**.
+
+If the subscription has expired, access will be denied.
 
 ---
 
@@ -232,7 +248,7 @@ GET /admin/logs
 
 Returns premium content access logs.
 
-Example log entry:
+Example:
 
 ```
 User 1 accessed premium content at 2026-03-12T13:36:39.958Z
@@ -242,13 +258,13 @@ User 1 accessed premium content at 2026-03-12T13:36:39.958Z
 
 # Activity Logging
 
-Whenever a user accesses premium content, an entry is written to:
+Every time premium content is accessed, an entry is written to:
 
 ```
 logs/access.log
 ```
 
-This helps track **premium content usage**.
+This enables monitoring of **premium content usage**.
 
 ---
 
@@ -256,13 +272,15 @@ This helps track **premium content usage**.
 
 * Admin endpoint to view access logs
 * PostgreSQL database integration
+* **30-day subscription expiration**
+* **Environment variable configuration using dotenv**
 
 ---
 
 # Future Improvements
 
-* Subscription expiration (30 days)
 * Payment gateway integration
+* Subscription renewal system
 * Usage analytics dashboard
 * Docker containerization
 * Database migrations
@@ -272,7 +290,9 @@ This helps track **premium content usage**.
 # Author
 
 Hemanth
-GitHub: https://github.com/gr-hemanth
+
+GitHub:
+https://github.com/gr-hemanth
 
 ---
 
